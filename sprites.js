@@ -2,234 +2,247 @@
 // Entities
 //
 // ###################################################################
-var BaseSprite = Class.extend({
-  init: function(img, x, y) {
-    this.img = img;
-    this.position = Point2D(x, y);
-    this.scale = Point2D(1, 1);
-    this.bounds = Rect(x, y, this.img.width, this.img.height);
-    this.doLogic = true;
-  },
-                           
-  update: function(dt) { },
-  
-  _updateBounds: function() {
-     this.bounds = Rect(this.position.x, this.position.y, Math.trunc(0.5 + this.img.width * this.scale.x), Math.trunc(0.5 + this.img.height * this.scale.y));
-  },
-  
-  _drawImage: function() {
-    ctx.drawImage(this.img, this.position.x, this.position.y);
-  },
-  
-  draw: function(resized) {
-    this._updateBounds();
+const createBaseSprite = (_img, _x, _y) => {
+  const img = _img
+  const position = createPoint(_x, _y)
+  const scale = createPoint(1, 1)
+  let bounds = createRect(_x, _y, img.width, img.height)
+  const doLogic = true
     
-    this._drawImage();
+  const updateBounds = () => {
+     bounds = createRect(
+        position.x,
+        position.y,
+        Math.trunc(0.5 + img.width * scale.x),
+        Math.trunc(0.5 + img.height * scale.y)
+      )
   }
-});
-
-var SheetSprite = BaseSprite.extend({
-  init: function(sheetImg, clipRect, x, y) {
-    this._super(sheetImg, x, y);
-    this.clipRect = clipRect;
-    this.bounds = Rect(x, y, this.clipRect.w, this.clipRect.h);
-  },
-  
-  update: function(dt) {},
-  
-  _updateBounds: function() {
-    var w = ~~(0.5 + this.clipRect.w * this.scale.x);
-    var h = ~~(0.5 + this.clipRect.h * this.scale.y);
-    this.bounds = Rect(this.position.x - w/2, this.position.y - h/2, w, h);
-  },
-  
-  _drawImage: function() {
-    ctx.save();
-    ctx.transform(this.scale.x, 0, 0, this.scale.y, this.position.x, this.position.y);
-    ctx.drawImage(this.img, this.clipRect.x, this.clipRect.y, this.clipRect.w, this.clipRect.h, ~~(0.5 + -this.clipRect.w*0.5), ~~(0.5 + -this.clipRect.h*0.5), this.clipRect.w, this.clipRect.h);
-    ctx.restore();
-
-  },
-  
-  draw: function(resized) {
-    this._super(resized);
+  const drawImage = () => {
+    ctx.drawImage(img, position.x, position.y);
   }
-});
 
-var Player = SheetSprite.extend({
-  init: function() {
-    this._super(spriteSheetImg, PLAYER_CLIP_RECT, CANVAS_WIDTH/2, CANVAS_HEIGHT - 70);
-    this.scale = Point2D(0.85, 0.85);
-    this.lives = 3;
-    this.xVel = 0;
-    this.bullets = [];
-    this.bulletDelayAccumulator = 0;
-    this.score = 0;
-  },
+  const draw = () => {
+    updateBounds()
+    drawImage()
+  }
   
-  reset: function() {
-    this.lives = 3;
-    this.score = 0;
-    this.position = Point2D(CANVAS_WIDTH/2, CANVAS_HEIGHT - 70);
-  },
+  return {
+    img,
+    scale,
+    bounds,
+    position,
+    updateBounds,
+    draw
+  }
+}
+
+const createSheetSprite = (_sheetImg, _clipRect, _x, _y) => {
+  const baseSprite = createBaseSprite(_sheetImg, _x, _y)
+  const clipRect = _clipRect
   
-  shoot: function() {
-    var bullet = new Bullet(this.position.x, this.position.y - this.bounds.h / 2, 1, 1000);
-    this.bullets.push(bullet);
-  },
+  const updateBounds = baseSprite.updateBounds
   
-  handleInput: function() {
+  const drawImage = () => {
+    ctx.save()
+    ctx.transform(baseSprite.scale.x, 0, 0, baseSprite.scale.y, baseSprite.position.x, baseSprite.position.y)
+    ctx.drawImage(baseSprite.img, clipRect.x, clipRect.y, clipRect.w, clipRect.h, Math.trunc(0.5 + -this.clipRect.w*0.5), Math.trunc(0.5 + -clipRect.h*0.5), clipRect.w, clipRect.h)
+    ctx.restore()
+  }
+   
+  const draw = baseSprite.draw
+  
+  return {
+    bounds: baseSprite.bounds,
+    position: baseSprite.position,
+    clipRect,
+    draw
+  }
+}
+
+const createPlayer = () => {
+  const PLAYER_CLIP_RECT = { x: 0, y: 204, w: 62, h: 32 }
+  const sheetSprite = createSheetSprite(spriteSheetImg, PLAYER_CLIP_RECT, CANVAS_WIDTH/2, CANVAS_HEIGHT - 70)
+  const scale = createPoint(0.85, 0.85)
+  let lives = 3
+  let xVel = 0
+  const bullets = []
+  let bulletDelayAccumulator = 0
+  let score = 0
+  
+  const reset = () => {
+    lives = 3;
+    score = 0;
+    sheetSprite.position = createPoint(CANVAS_WIDTH/2, CANVAS_HEIGHT - 70)
+  }
+  
+  const shoot = () => {
+    const bullet = createBullet(sheetSprite.position.x, sheetSprite.position.y - sheetSprite.bounds.h / 2, 1, 1000);
+    bullets.push(bullet);
+  }
+  
+  const handleInput = () => {
     if (isKeyDown(LEFT_KEY)) {
-      this.xVel = -175;
+      xVel = -175;
     } else if (isKeyDown(RIGHT_KEY)) {
-      this.xVel = 175;
-    } else this.xVel = 0;
+      xVel = 175;
+    } else xVel = 0;
     
     if (wasKeyPressed(SHOOT_KEY)) {
-      if (this.bulletDelayAccumulator > 0.5) {
-        this.shoot(); 
-        this.bulletDelayAccumulator = 0;
+      if (bulletDelayAccumulator > 0.5) {
+        shoot(); 
+        bulletDelayAccumulator = 0;
       }
     }
-  },
+  }
   
-  updateBullets: function(dt) {
-    for (var i = this.bullets.length - 1; i >= 0; i--) {
-      var bullet = this.bullets[i];
+  const updateBullets = dt => {
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      const bullet = this.bullets[i];
       if (bullet.alive) {
         bullet.update(dt);
       } else {
-        this.bullets.splice(i, 1);
+        bullets.splice(i, 1);
         bullet = null;
       }
     }
-  },
+  }
   
-  update: function(dt) {
+  const update = (dt) => {
     // update time passed between shots
-    this.bulletDelayAccumulator += dt;
+    bulletDelayAccumulator += dt;
     
     // apply x vel
-    this.position.x += this.xVel * dt;
+    sheetSprite.position.x += xVel * dt;
     
     // cap player position in screen bounds
-    this.position.x = clamp(this.position.x, this.bounds.w/2, CANVAS_WIDTH - this.bounds.w/2);
-    this.updateBullets(dt);
-  },
+    sheetSprite.position.x = clamp(sheetSprite.position.x, sheetSprite.bounds.w/2, CANVAS_WIDTH - sheetSprite.bounds.w/2);
+    updateBullets(dt);
+  }
   
-  draw: function(resized) {
-    this._super(resized);
+  const draw = (resized) => {
+    sheetSprite.draw();
 
     // draw bullets
-    for (var i = 0, len = this.bullets.length; i < len; i++) {
-      var bullet = this.bullets[i];
+    for (let i = 0, len = bullets.length; i < len; i++) {
+      const bullet = bullets[i];
       if (bullet.alive) {
         bullet.draw(resized);
       }
     }
   }
-});
 
-var Bullet = BaseSprite.extend({
-  init: function(x, y, direction, speed) {
-    this._super(bulletImg, x, y);
-    this.direction = direction;
-    this.speed = speed;
-    this.alive = true;
-  },
-  
-  update: function(dt) {
-    this.position.y -= (this.speed * this.direction) * dt;
-    
-    if (this.position.y < 0) {
-      this.alive = false;
-    }
-  },
-  
-  draw: function(resized) {
-    this._super(resized);
+  return {
+    lives,
+    clipRect: sheetSprite.clipRect,
+    bullets,
+    draw,
+    handleInput,
+    update
   }
-});
+}
 
-var Enemy = SheetSprite.extend({
-  init: function(clipRects, x, y) {
-    this._super(spriteSheetImg, clipRects[0], x, y);
-    this.clipRects = clipRects;
-    this.scale = Point2D(0.5, 0.5);
-    this.alive = true;
-    this.onFirstState = true;
-    this.stepDelay = 1; // try 2 secs to start with...
-    this.stepAccumulator = 0;
-    this.doShoot - false;
-    this.bullet = null;
-  },
+const createBullet = (bulletImg, x, y, _direction, _speed) => {
+  const baseSprite = createBaseSprite(bulletImg, x, y)
+  const direction = _direction
+  const speed = _speed
+  let alive = true
   
-  toggleFrame: function() {
-    this.onFirstState = !this.onFirstState;
-    this.clipRect = (this.onFirstState) ? this.clipRects[0] : this.clipRects[1];
-  },
+  const update = (dt) => {
+    baseSprite.position.y -= (speed * direction) * dt
+    if (baseSprite.position.y < 0) {
+      alive = false
+    }
+  }
+  const draw = baseSprite.draw
+  return {
+    bounds: baseSprite.bounds,
+    update,
+    draw
+  }
+}
+
+const createEnemy = (_clipRects, x, y) => {
+  const sheetSprite = createSheetSprite(spriteSheetImg, _clipRects[0], x, y)
+  let clipRects = _clipRects
+  const scale = createPoint(0.5, 0.5)
+  let alive = true
+  let onFirstState = true
+  const stepDelay = 1
+  let stepAccumulator = 0
+  let doShoot = false
+  let bullet = null
   
-  shoot: function() {
-    this.bullet = new Bullet(this.position.x, this.position.y + this.bounds.w/2, -1, 500);
-  },
+  const toggleFrame =  () => {
+    onFirstState = !onFirstState
+    clipRect = onFirstState ? clipRects[0] : clipRects[1]
+  }
   
-  update: function(dt) {
-    this.stepAccumulator += dt;
+  const shoot = () => {
+    bullet = createBullet(sheetSprite.position.x, sheetSprite.position.y + sheetSprite.bounds.w/2, -1, 500)
+  }
+  
+  const update = dt => {
+    stepAccumulator += dt
     
-    if (this.stepAccumulator >= this.stepDelay) {
-      if (this.position.x < this.bounds.w/2 + 20 && alienDirection < 0) {
-      updateAlienLogic = true;
-    } if (alienDirection === 1 && this.position.x > CANVAS_WIDTH - this.bounds.w/2 - 20) {
+    if (stepAccumulator >= stepDelay) {
+      if (sheetSprite.position.x < sheetSprite.bounds.w/2 + 20 && alienDirection < 0) {
+      updateAlienLogic = true
+    } if (alienDirection === 1 && sheetSprite.position.x > CANVAS_WIDTH - sheetSprite.bounds.w/2 - 20) {
       updateAlienLogic = true;
     }
-      if (this.position.y > CANVAS_WIDTH - 50) {
+      if (sheetSprite.position.y > CANVAS_WIDTH - 50) {
         reset();
       }
       
-      var fireTest = Math.floor(Math.random() * (this.stepDelay + 1));
-      if (getRandomArbitrary(0, 1000) <= 5 * (this.stepDelay + 1)) {
-        this.doShoot = true;
+      const fireTest = Math.floor(Math.random() * (stepDelay + 1));
+      if (getRandomArbitrary(0, 1000) <= 5 * (stepDelay + 1)) {
+        doShoot = true;
       }
-      this.position.x += 10 * alienDirection;
-      this.toggleFrame();
-      this.stepAccumulator = 0;
+      sheetSprite.position.x += 10 * alienDirection;
+      toggleFrame();
+      stepAccumulator = 0;
     }
-    this.position.y += alienYDown;
+    sheetSprite.position.y += alienYDown;
     
-    if (this.bullet !== null && this.bullet.alive) {
-      this.bullet.update(dt);  
+    if (bullet !== null && bullet.alive) {
+      bullet.update(dt);  
     } else {
-      this.bullet = null;
-    }
-  },
-  
-  draw: function(resized) {
-    this._super(resized);
-    if (this.bullet !== null && this.bullet.alive) {
-      this.bullet.draw(resized);
+      bullet = null;
     }
   }
-});
-
-var ParticleExplosion = Class.extend({
-  init: function() {
-    this.particlePool = [];
-    this.particles = [];
-  },
   
-  draw: function() {
-    for (var i = this.particles.length - 1; i >= 0; i--) {
-      var particle = this.particles[i];
+  const draw = () => {
+    sheetSprite.draw()
+    if (bullet !== null && bullet.alive) {
+      bullet.draw();
+    }
+  }
+
+  return {
+    bullet,
+    alive,
+    draw,
+    update
+  }
+}
+
+const createParticleExplosion = () => {
+  const particlePool = []
+  const particles = []
+  
+  const draw = () => {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const particle = particles[i]
       particle.moves++;
 	    particle.x += particle.xunits;
 		  particle.y += particle.yunits + (particle.gravity * particle.moves);
 			particle.life--;
 			
 			if (particle.life <= 0 ) {
-				if (this.particlePool.length < 100) {
-					this.particlePool.push(this.particles.splice(i,1));
+				if (particlePool.length < 100) {
+					particlePool.push(particles.splice(i,1));
 				} else {
-					this.particles.splice(i,1);
+					particles.splice(i,1);
 				}
 			} else {
 				ctx.globalAlpha = (particle.life)/(particle.maxLife);
@@ -238,36 +251,40 @@ var ParticleExplosion = Class.extend({
 				ctx.globalAlpha = 1;
 			}
     }
-  },
+  }
   
-  createExplosion: function(x, y, color, number, width, height, spd, grav, lif) {
-  for (var i =0;i < number;i++) {
-			var angle = Math.floor(Math.random()*360);
-			var speed = Math.floor(Math.random()*spd/2) + spd;	
-			var life = Math.floor(Math.random()*lif)+lif/2;
-			var radians = angle * Math.PI/ 180;
-			var xunits = Math.cos(radians) * speed;
-			var yunits = Math.sin(radians) * speed;
+  const createExplosion = (x, y, color, number, width, height, spd, gravity, life) => {
+    for (let i =0;i < number;i++) {
+			const angle = Math.floor(Math.random()*360);
+			const speed = Math.floor(Math.random()*spd/2) + spd;	
+			const maxLife = Math.floor(Math.random()*life)+life/2;
+			const radians = angle * Math.PI/ 180;
+			const xunits = Math.cos(radians) * speed;
+			const yunits = Math.sin(radians) * speed;
 				
 			if (this.particlePool.length > 0) {
-				var tempParticle = this.particlePool.pop();
+				const tempParticle = particlePool.pop();
 				tempParticle.x = x;
 				tempParticle.y = y;
 				tempParticle.xunits = xunits;
 				tempParticle.yunits = yunits;
-				tempParticle.life = life;
+				tempParticle.life = maxLife;
 				tempParticle.color = color;
 				tempParticle.width = width;
 				tempParticle.height = height;
-				tempParticle.gravity = grav;
+				tempParticle.gravity = gravity
 				tempParticle.moves = 0;
 				tempParticle.alpha = 1;
-				tempParticle.maxLife = life;
-				this.particles.push(tempParticle);
+				tempParticle.maxLife = maxLife;
+				particles.push(tempParticle);
 			} else {
-				this.particles.push({x:x,y:y,xunits:xunits,yunits:yunits,life:life,color:color,width:width,height:height,gravity:grav,moves:0,alpha:1, maxLife:life});
+				particles.push({ x, y, xunits, yunits, life, color, width, height, gravity, moves: 0, alpha: 1, maxLife: life });
 			}	
 	
 		}
   }
-});
+
+  return {
+    draw
+  }
+}

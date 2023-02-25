@@ -24,12 +24,12 @@ const checkRectCollision = (A, B) => {
   return xOverlap && yOverlap
 }
 
-const Point2D = (x, y) => ({
+const createPoint = (x, y) => ({
   x: x === undefined ? 0 : x,
   y: y === undefined ? 0 : y
 })
 
-const Rect = (x, y, w, h) => ({
+const createRect = (x, y, w, h) => ({
   x: x === undefined ? 0 : x,
   y: y === undefined ? 0 : y,
   w: w === undefined ? 0 : w,
