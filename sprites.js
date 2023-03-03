@@ -97,12 +97,11 @@ const createPlayer = () => {
   
   const updateBullets = dt => {
     for (let i = bullets.length - 1; i >= 0; i--) {
-      const bullet = this.bullets[i];
+      const bullet = bullets[i];
       if (bullet.alive) {
         bullet.update(dt);
       } else {
         bullets.splice(i, 1);
-        bullet = null;
       }
     }
   }
@@ -137,7 +136,8 @@ const createPlayer = () => {
     bullets,
     draw,
     handleInput,
-    update
+    update,
+    reset
   }
 }
 

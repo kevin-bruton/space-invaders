@@ -14,24 +14,22 @@ var TEXT_BLINK_FREQ = 500;
 // Globals
 //
 // ###################################################################
-var canvas = null;
-var ctx = null;
-var spriteSheetImg = null;
-var bulletImg = null;
-var keyStates = null;
-var prevKeyStates = null;
-var lastTime = 0;
-var player = null;
-var aliens = [];
-var particleManager = null;
-var updateAlienLogic = false;
-var alienDirection = -1;
-var alienYDown = 0;
-var alienCount = 0;
-var wave = 1;
-var hasGameStarted = false;
-
-
+var canvas = null
+var ctx = null
+var spriteSheetImg = null
+var bulletImg = null
+var keyStates = null
+var prevKeyStates = null
+var lastTime = 0
+var player = null
+var aliens = []
+var particleManager = null
+var updateAlienLogic = false
+var alienDirection = -1
+var alienYDown = 0
+var alienCount = 0
+var wave = 1
+var hasGameStarted = false
 
 // ###################################################################
 // Initialization functions
@@ -39,56 +37,56 @@ var hasGameStarted = false;
 // ###################################################################
 function initCanvas() {
   // create our canvas and context
-  canvas = document.getElementById('game-canvas');
-  ctx = canvas.getContext('2d');
+  canvas = document.getElementById('game-canvas')
+  ctx = canvas.getContext('2d')
   
   // turn off image smoothing
-  setImageSmoothing(false);
+  setImageSmoothing(false)
   
   // create our main sprite sheet img
-  spriteSheetImg = new Image();
-  const spriteSheetSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAEACAYAAAADRnAGAAACGUlEQVR42u3aSQ7CMBAEQIsn8P+/hiviAAK8zFIt5QbELiTHmfEYE3L9mZE9AAAAqAVwBQ8AAAD6THY5CgAAAKbfbPX3AQAAYBEEAADAuZrC6UUyfMEEAIBiAN8OePXnAQAAsLcmmKFPAQAAgHMbm+gbr3Sdo/LtcAAAANR6GywPAgBAM4D2JXAAABoBzBjA7AmlOx8AAEAzAOcDAADovTc4vQim6wUCABAYQG8QAADd4dPd2fRVYQAAANQG0B4HAABAawDnAwAA6AXgfAAAALpA2uMAAABwPgAAgPoAM9Ci/R4AAAD2dmqcEQIAIC/AiQGuAAYAAECcRS/a/cJXkUf2AAAAoBaA3iAAALrD+gIAAADY9baX/nwAAADNADwFAADo9YK0e5FMX/UFACA5QPSNEAAAAHKtCekmDAAAAADvBljtfgAAAGgMMGOrunvCy2uCAAAACFU6BwAAwF6AGQPa/XsAAADYB+B8AAAAtU+ItD4OAwAAAFVhAACaA0T7B44/BQAAANALwGMQAAAAADYO8If2+P31AgAAQN0SWbhFDwCAZlXgaO1xAAAA1FngnA8AACAeQPSNEAAAAM4CnC64AAAA4GzN4N9NSfgKEAAAAACszO26X8/X6BYAAAD0Anid8KcLAAAAAAAAAJBnwNEvAAAA9Jns1ygAAAAAAAAAAAAAAAAAAABAQ4COCENERERERERERBrnAa1sJuUVr3rsAAAAAElFTkSuQmCC';
-  spriteSheetImg.src = spriteSheetSrc  
-  preDrawImages();
+  spriteSheetImg = new Image()
+  const spriteSheetSrc = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAEACAYAAAADRnAGAAACGUlEQVR42u3aSQ7CMBAEQIsn8P+/hiviAAK8zFIt5QbELiTHmfEYE3L9mZE9AAAAqAVwBQ8AAAD6THY5CgAAAKbfbPX3AQAAYBEEAADAuZrC6UUyfMEEAIBiAN8OePXnAQAAsLcmmKFPAQAAgHMbm+gbr3Sdo/LtcAAAANR6GywPAgBAM4D2JXAAABoBzBjA7AmlOx8AAEAzAOcDAADovTc4vQim6wUCABAYQG8QAADd4dPd2fRVYQAAANQG0B4HAABAawDnAwAA6AXgfAAAALpA2uMAAABwPgAAgPoAM9Ci/R4AAAD2dmqcEQIAIC/AiQGuAAYAAECcRS/a/cJXkUf2AAAAoBaA3iAAALrD+gIAAADY9baX/nwAAADNADwFAADo9YK0e5FMX/UFACA5QPSNEAAAAHKtCekmDAAAAADvBljtfgAAAGgMMGOrunvCy2uCAAAACFU6BwAAwF6AGQPa/XsAAADYB+B8AAAAtU+ItD4OAwAAAFVhAACaA0T7B44/BQAAANALwGMQAAAAADYO8If2+P31AgAAQN0SWbhFDwCAZlXgaO1xAAAA1FngnA8AACAeQPSNEAAAAM4CnC64AAAA4GzN4N9NSfgKEAAAAACszO26X8/X6BYAAAD0Anid8KcLAAAAAAAAAJBnwNEvAAAA9Jns1ygAAAAAAAAAAAAAAAAAAABAQ4COCENERERERERERBrnAa1sJuUVr3rsAAAAAElFTkSuQmCC'
+  spriteSheetImg.src = spriteSheetSrc
+  preDrawImages()
 
   // add event listeners and initially resize
-  window.addEventListener('resize', resize);
-  document.addEventListener('keydown', onKeyDown);
-  document.addEventListener('keyup', onKeyUp);
+  window.addEventListener('resize', resize)
+  document.addEventListener('keydown', onKeyDown)
+  document.addEventListener('keyup', onKeyUp)
 }
 
 function preDrawImages() {
   var canvas = drawIntoCanvas(2, 8, function(ctx) {
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    });
-    bulletImg = new Image();
-    bulletImg.src = canvas.toDataURL();
+    ctx.fillStyle = 'white'
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+  })
+  bulletImg = new Image()
+  bulletImg.src = canvas.toDataURL()
 }
 
 function setImageSmoothing(value) {
-  this.ctx['imageSmoothingEnabled'] = value;
-  this.ctx['mozImageSmoothingEnabled'] = value;
-  this.ctx['oImageSmoothingEnabled'] = value;
-  this.ctx['webkitImageSmoothingEnabled'] = value;
-  this.ctx['msImageSmoothingEnabled'] = value;
+  this.ctx['imageSmoothingEnabled'] = value
+  this.ctx['mozImageSmoothingEnabled'] = value
+  this.ctx['oImageSmoothingEnabled'] = value
+  this.ctx['webkitImageSmoothingEnabled'] = value
+  this.ctx['msImageSmoothingEnabled'] = value
 }
 
 function initGame() {
-  dirtyRects = [];
-  aliens = [];
-  player = createPlayer();
-  particleManager = createParticleExplosion();
-  setupAlienFormation();  
-  drawBottomHud();
+  dirtyRects = []
+  aliens = []
+  player = createPlayer()
+  particleManager = createParticleExplosion()
+  setupAlienFormation()
+  drawBottomHud()
 }
 
 function setupAlienFormation() {
-  const alienBottomRow = [ { x: 0, y: 0, w: 51, h: 34 }, { x: 0, y: 102, w: 51, h: 34 }];
-  const alienMiddleRow = [ { x: 0, y: 137, w: 50, h: 33 }, { x: 0, y: 170, w: 50, h: 34 }];
-  const alienTopRow = [ { x: 0, y: 68, w: 50, h: 32 }, { x: 0, y: 34, w: 50, h: 32 }];
-  const alienXMargin = 40;
-  const alienSquadWidth = 11 * alienXMargin;
+  const alienBottomRow = [ { x: 0, y: 0, w: 51, h: 34 }, { x: 0, y: 102, w: 51, h: 34 }]
+  const alienMiddleRow = [ { x: 0, y: 137, w: 50, h: 33 }, { x: 0, y: 170, w: 50, h: 34 }]
+  const alienTopRow = [ { x: 0, y: 68, w: 50, h: 32 }, { x: 0, y: 34, w: 50, h: 32 }]
+  const alienXMargin = 40
+  const alienSquadWidth = 11 * alienXMargin
   alienCount = 0
   for (let i = 0, len = 5 * 11; i < len; i++) {
     const gridX = (i % 11)
@@ -96,20 +94,20 @@ function setupAlienFormation() {
     let clipRects
     switch (gridY) {
       case 0: 
-      case 1: clipRects = ALIEN_BOTTOM_ROW; break;
+      case 1: clipRects = alienBottomRow; break;
       case 2: 
-      case 3: clipRects = ALIEN_MIDDLE_ROW; break;
-      case 4: clipRects = ALIEN_TOP_ROW; break;
+      case 3: clipRects = alienMiddleRow; break;
+      case 4: clipRects = alienTopRow; break;
     }
-    aliens.push(createEnemy(clipRects, (CANVAS_WIDTH/2 - ALIEN_SQUAD_WIDTH/2) + ALIEN_X_MARGIN/2 + gridX * ALIEN_X_MARGIN, CANVAS_HEIGHT/3.25 - gridY * 40))
+    aliens.push(createEnemy(clipRects, (CANVAS_WIDTH/2 - alienSquadWidth/2) + alienXMargin/2 + gridX * alienXMargin, CANVAS_HEIGHT/3.25 - gridY * 40))
     alienCount++
   }
 }
 
 function reset() {
-  aliens = [];
-  setupAlienFormation();
-  player.reset();
+  aliens = []
+  setupAlienFormation()
+  player.reset()
 }
 
 function init() {
@@ -118,8 +116,6 @@ function init() {
   prevKeyStates = [];
   resize();
 }
-
-
 
 // ###################################################################
 // Helpful input functions
@@ -342,6 +338,6 @@ function onKeyUp(e) {
 //
 // ###################################################################
 window.onload = function() {
-  init();
-  animate();
-};
+  init()
+  // animate()
+}
